@@ -73,24 +73,24 @@ import java.io.Serializable;
 // 整数加法器，可以看做是对整数的普通原子操作的升级，利用"分段锁"，缓解了线程争用带来的开销，默认只支持增减操作
 public class LongAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
-    
-    
-    
+
+
+
     /*▼ 构造器 ████████████████████████████████████████████████████████████████████████████████┓ */
-    
+
     /**
      * Creates a new adder with initial sum of zero.
      */
     // 初始化一个总和为0的Long加法器
     public LongAdder() {
     }
-    
+
     /*▲ 构造器 ████████████████████████████████████████████████████████████████████████████████┛ */
-    
-    
-    
+
+
+
     /*▼ 增/减 ████████████████████████████████████████████████████████████████████████████████┓ */
-    
+
     /**
      * Adds the given value.
      *
@@ -102,12 +102,12 @@ public class LongAdder extends Striped64 implements Serializable {
         long b, v;
         int m;
         Cell c;
-        
+
         if((cs = cells) != null // 如果cells已经存在，则尝试更新cell
             || !casBase(b = base, b + x)) { // 如果cells不存在，则尝试更新基值
-            
+
             /* 至此，说明cells存在，或者cells不存在，且基值更新失败 */
-            
+
             boolean uncontended = true;
             if(cs == null   // cells不存在，且基值更新失败
                 || (m = cs.length - 1)<0    // cells存在但无效（长度为0）
@@ -117,7 +117,7 @@ public class LongAdder extends Striped64 implements Serializable {
             }
         }
     }
-    
+
     /**
      * Equivalent to {@code add(1)}.
      */
@@ -125,7 +125,7 @@ public class LongAdder extends Striped64 implements Serializable {
     public void increment() {
         add(1L);
     }
-    
+
     /**
      * Equivalent to {@code add(-1)}.
      */
@@ -133,13 +133,13 @@ public class LongAdder extends Striped64 implements Serializable {
     public void decrement() {
         add(-1L);
     }
-    
+
     /*▲ 增/减 ████████████████████████████████████████████████████████████████████████████████┛ */
-    
-    
-    
+
+
+
     /*▼ 获取值 ████████████████████████████████████████████████████████████████████████████████┓ */
-    
+
     /**
      * Returns the current sum.  The returned value is <em>NOT</em> an
      * atomic snapshot; invocation in the absence of concurrent
@@ -162,50 +162,54 @@ public class LongAdder extends Striped64 implements Serializable {
         }
         return sum;
     }
-    
+
     /**
      * Returns the {@link #sum} as an {@code int} after a narrowing
      * primitive conversion.
      */
     // 遍历cells，处理【操作系数】，以int形式返回总值
+    @Override
     public int intValue() {
         return (int) sum();
     }
-    
+
     /**
      * Equivalent to {@link #sum}.
      *
      * @return the sum
      */
     // 遍历cells，处理【操作系数】，以long形式返回总值
+    @Override
     public long longValue() {
         return sum();
     }
-    
+
     /**
      * Returns the {@link #sum} as a {@code float}
      * after a widening primitive conversion.
      */
     // 遍历cells，处理【操作系数】，以float形式返回总值
+    @Override
     public float floatValue() {
         return (float) sum();
     }
-    
+
     /**
      * Returns the {@link #sum} as a {@code double} after a widening
      * primitive conversion.
      */
     // 遍历cells，处理【操作系数】，以double形式返回总值
+    @Override
     public double doubleValue() {
         return (double) sum();
     }
-    
+
     /*▲ 获取值 ████████████████████████████████████████████████████████████████████████████████┛ */
-    
-    
-    
+
+
+
     /*▼ 重置 ████████████████████████████████████████████████████████████████████████████████┓ */
-    
+
     /**
      * Resets variables maintaining the sum to zero.  This method may
      * be a useful alternative to creating a new adder, but is only
@@ -225,7 +229,7 @@ public class LongAdder extends Striped64 implements Serializable {
             }
         }
     }
-    
+
     /**
      * Equivalent in effect to {@link #sum} followed by {@link
      * #reset}. This method may apply for example during quiescent
@@ -251,22 +255,23 @@ public class LongAdder extends Striped64 implements Serializable {
         }
         return sum;
     }
-    
+
     /*▲ 重置 ████████████████████████████████████████████████████████████████████████████████┛ */
-    
-    
-    
+
+
+
     /**
      * Returns the String representation of the {@link #sum}.
      *
      * @return the String representation of the {@link #sum}
      */
+    @Override
     public String toString() {
         return Long.toString(sum());
     }
-    
-    
-    
+
+
+
     /**
      * Returns a
      * <a href="../../../../serialized-form.html#java.util.concurrent.atomic.LongAdder.SerializationProxy">
@@ -279,7 +284,7 @@ public class LongAdder extends Striped64 implements Serializable {
     private Object writeReplace() {
         return new SerializationProxy(this);
     }
-    
+
     /**
      * @param s the stream
      *
@@ -288,7 +293,7 @@ public class LongAdder extends Striped64 implements Serializable {
     private void readObject(ObjectInputStream s) throws InvalidObjectException {
         throw new InvalidObjectException("Proxy required");
     }
-    
+
     /**
      * Serialization proxy, used to avoid reference to the non-public
      * Striped64 superclass in serialized forms.
@@ -297,18 +302,18 @@ public class LongAdder extends Striped64 implements Serializable {
      */
     private static class SerializationProxy implements Serializable {
         private static final long serialVersionUID = 7249069246863182397L;
-        
+
         /**
          * The current value returned by sum().
          *
          * @serial
          */
         private final long value;
-        
+
         SerializationProxy(LongAdder a) {
             value = a.sum();
         }
-        
+
         /**
          * Returns a {@code LongAdder} object with initial state
          * held by this proxy.
@@ -322,5 +327,5 @@ public class LongAdder extends Striped64 implements Serializable {
             return a;
         }
     }
-    
+
 }
